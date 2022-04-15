@@ -1,0 +1,11 @@
+## Interface: 90200
+## Title: Easy Rider
+## Notes: Random mount based on player location
+## Version: 1.0
+
+## Author: BryRiv
+## X-License: CC BY-NC-SA 4.0 license
+## X-Category: Mount
+## SavedVariablesPerCharacter: EasyRiderSrcMode
+
+EasyRider.lua
