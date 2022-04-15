@@ -6,6 +6,6 @@
 ## Author: BryRiv
 ## X-License: CC BY-NC-SA 4.0 license
 ## X-Category: Mount
-## SavedVariablesPerCharacter: EasyRiderSrcMode
+## SavedVariablesPerCharacter: EasyRiderVars
 
 EasyRider.lua

@@ -12,8 +12,7 @@ EasyRider.frame:RegisterEvent("PLAYER_LOGIN")
 EasyRider.frame:RegisterEvent("PLAYER_LOGOUT")
 
 EasyRider.useAllMounts = false
-EasyRider.srcMode = "favs"
-EasyRider.prefix = "|c00508ecc[Easy Rider]|r"
+EasyRider.prefix = "|c00508ecc[Easy Rider] |cFFe3c564"
 
 local filterType = {
     ground = { index = 1, checked = true },
@@ -21,18 +20,14 @@ local filterType = {
     aquatic = { index = 3, checked = false }
 }
 
+EasyRider.dismount = function()
+    C_MountJournal.Dismiss()
+end
+
 EasyRider.mountUp = function()
 
-    if EasyRider.srcMode == "all" then
+    if EasyRiderVars.srcMode == "all" then
         EasyRider.useAllMounts = true
-    end
-
-    if IsMounted() and not IsFlying() then
-        C_MountJournal.Dismiss()
-        return
-    elseif IsFlying() then
-        EasyRider.out("No dismount in the air, fool!")
-        return
     end
 
     local actionMessage
@@ -80,11 +75,13 @@ EasyRider.mountUp = function()
         EasyRider.out("Seems like mounting not allowed here. Sorry.")
     else
         local mount_idx = fastrandom(#myMounts)
-        EasyRider.out(actionMessage)
-        EasyRider.out("Mounting up on " .. myMounts[mount_idx].name)
+        if not EasyRiderVars.quiet then
+            EasyRider.out(actionMessage)
+            EasyRider.out("Mounting up on " .. myMounts[mount_idx].name)
+            local _, desc = C_MountJournal.GetMountInfoExtraByID(myMounts[mount_idx].id)
+            EasyRider.out("|c00889D9D<"..desc..">")
+        end
         C_MountJournal.SummonByID(myMounts[mount_idx].id)
-        local _, desc = C_MountJournal.GetMountInfoExtraByID(myMounts[mount_idx].id)
-        EasyRider.out("|c00889D9D<"..desc..">")
     end
 
 end
@@ -92,7 +89,7 @@ end
 EasyRider.out = function(msg)
     if not msg then return end
     if not EasyRider.quiet then
-        ChatFrame1:AddMessage(EasyRider.prefix .. " " .. msg)
+        ChatFrame1:AddMessage(EasyRider.prefix .. msg)
     end
 end
 
@@ -102,41 +99,56 @@ EasyRider.cmdHandler = function(opt)
 
     if opt == "all" then
         EasyRider.useAllMounts = true
-        EasyRider.srcMode = "all"
+        EasyRiderVars.srcMode = "all"
         EasyRider.out(cmdColor.."Set source to all mounts.")
     elseif opt == "favs" then
         EasyRider.useAllMounts = false
-        EasyRider.srcMode = "favs"
+        EasyRiderVars.srcMode = "favs"
         EasyRider.out(cmdColor.."Set source to favorite mounts")
     elseif opt == "src" then
-        EasyRider.out(cmdColor.."Source currently set to " .. EasyRider.srcMode)
+        EasyRider.out(cmdColor.."Source currently set to " .. EasyRiderVars.srcMode)
     elseif opt == "quiet" then
         EasyRider.out(cmdColor.."EasyRider shutting up")
-        EasyRider.quiet = true
+        EasyRiderVars.quiet = true
     elseif opt == "chatty" then
-        EasyRider.quiet = false
+        EasyRiderVars.quiet = false
         EasyRider.out(cmdColor.."EasyRider chatty info enabled")
+    elseif IsMounted() and not IsFlying() then
+        EasyRider.dismount()
+    elseif IsMounted() and  IsFlying() then
+        EasyRider.out(cmdColor.."No dismounting in the air, fool!")
     else
         EasyRider.mountUp()
     end
+
 end
 
 EasyRider.eventHandler = function(self, event, arg)
 
     if event == "PLAYER_ENTERING_WORLD" then
 
-        if EasyRiderSrcMode == nil then
-            EasyRider.out("[Init] Source Mode is not set, defaulting to 'favs'.");
-            EasyRiderSrcMode = "favs";
+        if EasyRiderVars == nil then
+            EasyRiderVars = {
+                srcMode = 'favs',
+                quiet = false
+            }
         end
 
-        EasyRider.srcMode = EasyRiderSrcMode
-        EasyRider.out("|cFFe3c564[Init]|r Source Mode set to " .. EasyRider.srcMode)
+        local initPrefix = "|cFFe3c564[Init] "
+        if EasyRiderVars.srcMode == nil then
+            EasyRider.out(initPrefix.."Source Mode is not set, defaulting to 'favs'.");
+            EasyRiderVars.srcMode = "favs";
+        end
+        EasyRider.out(initPrefix.."Source Mode set to " .. EasyRiderVars.srcMode)
+
+        if EasyRiderVars.quiet == nil then
+            EasyRiderVars.quiet = false
+        elseif EasyRiderVars.quiet then
+            EasyRider.out(initPrefix.."Shutting up now.");
+        end
 
         EasyRider.frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
-    elseif event == "PLAYER_LOGOUT" then
-        EasyRiderSrcMode = EasyRider.srcMode;
     end
 
 end
